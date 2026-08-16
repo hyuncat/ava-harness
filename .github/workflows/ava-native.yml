@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - ".github/workflows/ava-native.yml"
+      - "run_ava_ci.m"
       - "matlab/**"
       - "fixtures/**"
 
@@ -37,15 +38,7 @@ jobs:
       - name: Run native AVA
         uses: matlab-actions/run-command@v3
         with:
-          command: >
-            addpath("matlab");
-            addpath(genpath("vendor/ava"));
-            set(groot, "defaultFigureVisible", "off");
-            ava_ci_entry(
-              "fixtures/input.csv",
-              "results/ava_native.csv",
-              "results/ava_native.mat"
-            );
+          command: run_ava_ci
 
       - name: Upload native outputs
         uses: actions/upload-artifact@v4
