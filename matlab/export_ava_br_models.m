@@ -253,7 +253,20 @@ function plain = plain_kernel_model(distribution, label, variable, filename)
     plain.class_name = class(distribution);
     plain.distribution_name = char(distribution.DistributionName);
     plain.kernel = char(distribution.Kernel);
-    plain.bandwidth = double(distribution.Bandwidth);
+    % KernelDistribution objects saved by older MATLAB releases used the
+    % legacy spelling BandWidth. Newer releases document Bandwidth. Loading
+    % AVA's 2015 objects in R2021a preserves the legacy property name.
+    if isprop(distribution, 'Bandwidth')
+        plain.bandwidth = double(distribution.Bandwidth);
+    elseif isprop(distribution, 'BandWidth')
+        plain.bandwidth = double(distribution.BandWidth);
+    else
+        available = strjoin(properties(distribution), ', ');
+        error( ...
+            'KernelDistribution has no bandwidth property. Available: %s', ...
+            available ...
+        );
+    end
     % AVA created these models with fitdist(..., 'Kernel') and no Support
     % or truncation options, so the documented defaults are unbounded and
     % untruncated. Retain fallbacks for older MATLAB object versions that do
