@@ -1,0 +1,55 @@
+name: AVA native MATLAB parity
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/ava-native.yml"
+      - "matlab/**"
+      - "fixtures/**"
+
+permissions:
+  contents: read
+
+jobs:
+  run-ava:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out parity harness
+        uses: actions/checkout@v6
+
+      - name: Download pinned AVA source
+        run: |
+          git clone https://github.com/skx300/ava.git vendor/ava
+          git -C vendor/ava checkout --detach 77e4dfe8affa6014112bdf23769b2a97dde0d2b7
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v3
+        with:
+          release: R2021a
+          products: >
+            Curve_Fitting_Toolbox
+            Signal_Processing_Toolbox
+            Statistics_and_Machine_Learning_Toolbox
+
+      - name: Run native AVA
+        uses: matlab-actions/run-command@v3
+        with:
+          command: >
+            addpath("matlab");
+            addpath(genpath("vendor/ava"));
+            set(groot, "defaultFigureVisible", "off");
+            ava_ci_entry(
+              "fixtures/input.csv",
+              "results/ava_native.csv",
+              "results/ava_native.mat"
+            );
+
+      - name: Upload native outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: ava-native-results
+          path: results/
+          retention-days: 30
