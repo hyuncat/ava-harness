@@ -267,41 +267,17 @@ function plain = plain_kernel_model(distribution, label, variable, filename)
             available ...
         );
     end
-    % AVA created these models with fitdist(..., 'Kernel') and no Support
-    % or truncation options, so the documented defaults are unbounded and
-    % untruncated. Retain fallbacks for older MATLAB object versions that do
-    % not expose all newer distribution-base properties through isprop().
-    if isprop(distribution, 'Support')
-        plain.support = support_text(distribution.Support);
-    else
-        plain.support = 'unbounded';
-    end
-    if isprop(distribution, 'IsTruncated')
-        plain.is_truncated = logical(distribution.IsTruncated);
-    else
-        plain.is_truncated = false;
-    end
-    if isprop(distribution, 'Truncation')
-        plain.truncation = double(distribution.Truncation(:));
-    else
-        plain.truncation = [-Inf; Inf];
-    end
+    % AVA's probabilityDistribution2.m created every released model with
+    % fitdist(data, 'Kernel') and supplied neither Support nor truncation
+    % options. Therefore all four models use MATLAB's unbounded, untruncated
+    % defaults. The 2015 object stores Support as a version-specific internal
+    % struct, so do not serialize that implementation detail.
+    plain.support = 'unbounded';
+    plain.is_truncated = false;
+    plain.truncation = [-Inf; Inf];
     plain.samples = samples;
     plain.frequency = frequency;
     plain.censored = censored;
-end
-
-
-function text = support_text(value)
-    if ischar(value)
-        text = value;
-    elseif isstring(value)
-        text = char(value);
-    elseif isnumeric(value)
-        text = mat2str(value);
-    else
-        error('Unsupported KernelDistribution support type: %s', class(value));
-    end
 end
 
 
